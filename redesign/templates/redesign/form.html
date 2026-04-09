@@ -1,0 +1,14 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Redesign</button>
+</form>
+{% if form.instance.original_image %}
+    <h3>Original Image:</h3>
+    <img src="{{ form.instance.original_image.url }}" style="max-width:400px;">
+{% endif %}
+
+{% if output_path %}
+    <h2>Redesigned Image:</h2>
+    <img src="/media/{{ output_path }}" style="max-width:600px; height:auto;">
+{% endif %}
