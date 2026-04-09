@@ -5,11 +5,16 @@ from diffusers import StableDiffusionImg2ImgPipeline
 import torch
 from PIL import Image
 import os, uuid
+from diffusers import DPMSolverMultistepScheduler
+
 
 # Load model once (CPU)
 model_id = "runwayml/stable-diffusion-v1-5"
 pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model_id, torch_dtype=torch.float32)
 pipe = pipe.to("cpu")  # CPU inference
+pipe.enable_attention_slicing()
+pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+pipe.safety_checker = None
 
 def redesign_home(request):
     output_path = None
@@ -22,9 +27,10 @@ def redesign_home(request):
 
             # Resize to reduce CPU load
             input_image = input_image.convert("RGB")
-            input_image.thumbnail((512, 512))
+            input_image.thumbnail((512,512))
             # Generate redesigned image (CPU is slow)
-            output_image = pipe(
+            with torch.no_grad():
+                output_image = pipe(
                 prompt=prompt,
                 image=input_image,
                 strength=0.5,
